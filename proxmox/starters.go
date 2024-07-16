@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func (d *Driver) startAgent() error {
+func (d *QemuDriver) startAgent() error {
 	//if err := d.vm.WaitForAgent(10); err != nil {
 	//	return err
 	//}
@@ -18,7 +18,7 @@ func (d *Driver) startAgent() error {
 	return nil
 }
 
-func (d *Driver) startDrive() error {
+func (d *QemuDriver) startDrive() error {
 	// create a snippet and do something like this
 	//task, err := d.vm.Config(proxmox.VirtualMachineOption{
 	//	Name:  "cicustom",
@@ -28,7 +28,7 @@ func (d *Driver) startDrive() error {
 	return errors.New("method not supported: drive")
 }
 
-func (d *Driver) startNoCloud() error {
+func (d *QemuDriver) startNoCloud() error {
 	userData, metaData, err := d.buildCloudInit()
 	ctx := context.Background()
 	if err != nil {
@@ -41,11 +41,11 @@ func (d *Driver) startNoCloud() error {
 	return d.Start()
 }
 
-func (d *Driver) publicSSHKeyPath() string {
+func (d *QemuDriver) publicSSHKeyPath() string {
 	return d.GetSSHKeyPath() + ".pub"
 }
 
-func (d *Driver) buildCloudInit() (string, string, error) {
+func (d *QemuDriver) buildCloudInit() (string, string, error) {
 	sshkey, err := os.ReadFile(d.publicSSHKeyPath())
 	if err != nil {
 		return "", "", err

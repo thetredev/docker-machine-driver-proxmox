@@ -21,7 +21,7 @@ const (
 	B2DUser    = "docker"
 )
 
-type Driver struct {
+type QemuDriver struct {
 	*drivers.BaseDriver
 	client   *proxmox.Client
 	ID       int
@@ -42,15 +42,15 @@ type Driver struct {
 	Secret            string
 }
 
-func NewDriver() drivers.Driver {
-	return &Driver{
+func NewQemuDriver() drivers.Driver {
+	return &QemuDriver{
 		BaseDriver: &drivers.BaseDriver{
 			SSHUser: B2DUser,
 		},
 	}
 }
 
-func (d *Driver) Create() error {
+func (d *QemuDriver) Create() error {
 	if d.node == nil || d.template == nil {
 		return errors.New("node and template required")
 	}
@@ -100,7 +100,7 @@ func (d *Driver) Create() error {
 	return d.waitForIP()
 }
 
-func (d *Driver) waitForIP() error {
+func (d *QemuDriver) waitForIP() error {
 	// todo only supports agent, add more methods to find ip
 	// todo only supports Net0
 	// todo only supports ipv4
@@ -137,19 +137,19 @@ RETRY:
 	return nil
 }
 
-func (d *Driver) DriverName() string {
+func (d *QemuDriver) DriverName() string {
 	return DriverName
 }
 
-func (d *Driver) GetCreateFlags() []mcnflag.Flag {
-	return flags
+func (d *QemuDriver) GetCreateFlags() []mcnflag.Flag {
+	return qemuFlags
 }
 
-func (d *Driver) GetSSHHostname() (string, error) {
+func (d *QemuDriver) GetSSHHostname() (string, error) {
 	return d.IPAddress, nil
 }
 
-func (d *Driver) GetURL() (string, error) {
+func (d *QemuDriver) GetURL() (string, error) {
 	ip, err := d.GetIP()
 	if err != nil {
 		return "", err
@@ -158,7 +158,7 @@ func (d *Driver) GetURL() (string, error) {
 	return fmt.Sprintf("tcp://%s:2376", ip), nil
 }
 
-func (d *Driver) GetState() (state.State, error) {
+func (d *QemuDriver) GetState() (state.State, error) {
 	if err := d.setup(); err != nil {
 		return state.None, err
 	}
@@ -180,7 +180,7 @@ func (d *Driver) GetState() (state.State, error) {
 	return state.None, nil
 }
 
-func (d *Driver) Kill() error {
+func (d *QemuDriver) Kill() error {
 	ctx := context.Background()
 
 	t, err := d.vm.Stop(ctx)
@@ -200,7 +200,7 @@ func (d *Driver) Kill() error {
 	return t.WaitFor(ctx, 15)
 }
 
-func (d *Driver) PreCreateCheck() error {
+func (d *QemuDriver) PreCreateCheck() error {
 	if d.client == nil {
 		return fmt.Errorf("no api client was created")
 	}
@@ -212,7 +212,7 @@ func (d *Driver) PreCreateCheck() error {
 	return d.setup()
 }
 
-func (d *Driver) Remove() error {
+func (d *QemuDriver) Remove() error {
 	if err := d.setup(); err != nil {
 		return err
 	}
@@ -224,7 +224,7 @@ func (d *Driver) Remove() error {
 	return d.Kill()
 }
 
-func (d *Driver) Restart() error {
+func (d *QemuDriver) Restart() error {
 	ctx := context.Background()
 
 	t, err := d.vm.Reboot(ctx)
@@ -235,7 +235,7 @@ func (d *Driver) Restart() error {
 	return t.WaitFor(ctx, 15)
 }
 
-func (d *Driver) Start() error {
+func (d *QemuDriver) Start() error {
 	ctx := context.Background()
 
 	t, err := d.vm.Start(ctx)
@@ -246,7 +246,7 @@ func (d *Driver) Start() error {
 	return t.WaitFor(ctx, 15)
 }
 
-func (d *Driver) Stop() error {
+func (d *QemuDriver) Stop() error {
 	ctx := context.Background()
 
 	t, err := d.vm.Stop(ctx)
@@ -257,7 +257,7 @@ func (d *Driver) Stop() error {
 	return t.WaitFor(ctx, 15)
 }
 
-func (d *Driver) proxmoxClient() *proxmox.Client {
+func (d *QemuDriver) proxmoxClient() *proxmox.Client {
 	var options []proxmox.Option
 	if d.Insecure {
 		options = append(options, proxmox.WithHTTPClient(&http.Client{
@@ -284,7 +284,7 @@ func (d *Driver) proxmoxClient() *proxmox.Client {
 	return proxmox.NewClient(d.ApiUrl, options...)
 }
 
-func (d *Driver) setup() (err error) {
+func (d *QemuDriver) setup() (err error) {
 	if d.TemplateId == 0 {
 		return fmt.Errorf("template id has to be set")
 	}

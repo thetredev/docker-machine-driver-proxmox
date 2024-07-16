@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	plugin.RegisterDriver(proxmox.NewDriver())
+	plugin.RegisterDriver(proxmox.NewQemuDriver())
 }
